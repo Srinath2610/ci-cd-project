@@ -26,7 +26,7 @@ pipeline {
             steps {
                 bat '''
                 docker rm -f cicd-container 2>NUL || echo No previous container
-                docker run -d --restart unless-stopped -p 3000:3000 --name cicd-container cicd-app
+                docker run -d --restart unless-stopped -p 3002:5000 --name cicd-container cicd-app
                 '''
             }
         }
