@@ -1,28 +1,43 @@
 
+
 pipeline {
     agent any
 
     stages {
-        stage('Build') {
+        stage('Checkout') {
             steps {
-                echo 'Building the application'
-                bat 'docker build -t ci-cd-app .'
+                echo 'Source code checked out from GitHub'
             }
         }
 
         stage('Test') {
             steps {
-                echo 'Running application tests'
-                bat 'docker run --rm ci-cd-app python -m pytest -q'
+                bat 'npm test'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                bat 'docker build -t cicd-app .'
             }
         }
 
         stage('Deploy Locally') {
             steps {
-                echo 'Deploying the application'
-                bat 'docker rm -f ci-cd-app-container 2>nul || exit /b 0'
-                bat 'docker run -d --name ci-cd-app-container -p 5000:5000 ci-cd-app'
+                bat '''
+                docker rm -f cicd-container 2>NUL || echo No previous container
+                docker run -d --restart unless-stopped -p 3000:3000 --name cicd-container cicd-app
+                '''
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'CI/CD Pipeline completed successfully!'
+        }
+        failure {
+            echo 'CI/CD Pipeline failed!'
         }
     }
 }
